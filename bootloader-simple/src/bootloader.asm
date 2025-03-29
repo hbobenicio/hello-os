@@ -14,16 +14,16 @@ bits 16 ; tells the assembler to emit 16-bit code
 org START_ADDR
 
 _start:
-    ; Setup data segments
-    xor ax, ax ; can't write to ds/es directly
-    mov ds, ax
-    mov es, ax
+    ; Setting Segment Registers to predictable values
+    xor ax, ax  ; we can't write to ds/es directly
+    mov ds, ax  ; Data Segment
+    mov es, ax  ; Extra Segment
+    mov ss, ax  ; Stack Segment
 
-    ; Setup stack segment
-    mov ss, ax
-    mov sp, START_ADDR ; stack grows downwards from address bellow our program
+    ; Define the stack to grow down from the starting address
+    mov sp, START_ADDR
 
-    call set_video_mode
+    call videosvc_set_video_mode
 
     ; Writes a string from `hello` label to the screen using 0x10 video interruption with 0xe write char function
     mov si, hello
@@ -34,15 +34,17 @@ _start:
     hlt    ; `hlt` stops the CPU from executing (it can be resumed by an interrupt though).
     jmp $  ; In certain cases, the cpu can start running again... so we infinite-loop it just-in-case
 
-; Sets the Video Mode
-set_video_mode:
-    xor ah, ah              ; Set Video Mode
-    mov al, 0x03            ; 80x25 16 color text
-    int BIOS_INT_VIDEO_SVC  ; Interruption Video Services
-    ; This will also clear the screen
+; @description Sets the Video Mode
+videosvc_set_video_mode:
+    ; calls Video Services BIOS Interruption (int 0x10)
+    xor ah, ah              ; Video Services Param: AH==0x00: Set Video Mode
+    mov al, 0x03            ; Video Services Param: AL==0x03: 80x25 16-bit Color Text Mode
+    int BIOS_INT_VIDEO_SVC  ; calls the Video Services interruption
+    ; NOTE This will also clear the screen
+
     ret
 
-; Writes a (NUL-Terminated) C-String using BIOS Video Services Interruption.
+; @description Writes a (NUL-Terminated) C-String using BIOS Video Services Interruption.
 ; @param si Address of nul-terminated string to be printed
 cstr_print:
 .write_char:
