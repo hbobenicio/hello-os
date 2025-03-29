@@ -1,30 +1,5 @@
-; # minimal-boot
-;
-; MBR boot-loader main program
-;
-; ## Build and Run
-;
-; ```bash
-; make
-; make run
-; ```
-;
-; ## Command Snippets
-;
-; Compile..: nasm -f bin -o os.bin os.asm
-; Truncate.: truncate -s 1440k os.bin
-; Run......: qemu-system-i386 -fda os.bin
-; Run2.....: qemu-system-i386 -drive file=os.bin,format=raw,index=0,media=disk
-; Run3.....: qemu-system-i386 os.bin
-;
-; ## References
-;
-; [Making an OS (x86) by Daedalus Community](https://youtube.com/playlist?list=PLm3B56ql_akNcvH8vvJRYOc7TbYhRs19M&si=BhSDtwbW3JNQH7Mo)
-; [nanobyte "Building a bootloader" and "Building an OS" playlists](https://www.youtube.com/@nanobyte-dev/playlists)
-;
-; The CPU when the BIOS is loading enters 16-bit mode for compatibility reasons.
-; bits assemble instruction tells the assembler to emit 16-bit code
-bits 16
+; At bootloading time, the BIOS puts the CPU in 16-bit real mode for compatibility reasons.
+bits 16 ; tells the assembler to emit 16-bit code
 
 %define START_ADDR 0X7C00
 
@@ -40,7 +15,7 @@ org START_ADDR
 
 _start:
     ; Setup data segments
-    mov ax, 0 ; can't write to ds/es directly
+    xor ax, ax ; can't write to ds/es directly
     mov ds, ax
     mov es, ax
 

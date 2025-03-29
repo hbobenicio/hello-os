@@ -1,13 +1,32 @@
-all: os.bin
+# `?=` operator only defines a variable if it's not already defined
+# (can be defined by env vars, for example)
+ASM    ?= nasm
+DISASM ?= ndisasm
 
-os.bin: os.asm
-	nasm -f bin -o os.bin os.asm
+BUILDDIR      := build
+BIN           := $(BUILDDIR)/bootloader.bin
+LISTING       := $(BUILDDIR)/bootloader.lst
+DISASSEMBLING := $(BUILDDIR)/bootloader.dis
+
+all: $(BUILDDIR) $(BIN) $(DISASSEMBLING)
+
+$(BUILDDIR):
+	mkdir -p $(BUILDDIR)
+
+$(BIN): src/bootloader.asm $(BUILDDIR)
+	$(ASM) -f bin -l $(LISTING) -o $@ $<
 
 .PHONY: run
-run: os.bin
-	qemu-system-i386 -drive file=os.bin,format=raw,index=0,media=disk
+run: $(BIN)
+	qemu-system-i386 -drive file=$(BIN),format=raw,index=0,media=disk
+
+# .PHONY: install
+# install: $(BIN)
+# 	dd if=bootsector.bin of=/dev/sda bs=512 count=1
+
+$(DISASSEMBLING): $(BIN)
+	$(DISASM) -b16 -o7C00h $(BIN) > $(DISASSEMBLING)
 
 .PHONY: clean
 clean:
-	$(RM) os.bin
-
+	$(RM) -r $(BUILDDIR)
