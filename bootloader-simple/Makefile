@@ -7,6 +7,7 @@ BUILDDIR      := build
 BIN           := $(BUILDDIR)/bootloader.bin
 LISTING       := $(BUILDDIR)/bootloader.lst
 DISASSEMBLING := $(BUILDDIR)/bootloader.dis
+SRCDIR        := src
 
 all: $(BUILDDIR) $(BIN) $(DISASSEMBLING)
 
@@ -14,11 +15,16 @@ $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
 
 $(BIN): src/bootloader.asm $(BUILDDIR)
-	$(ASM) -f bin -l $(LISTING) -o $@ $<
+	$(ASM) -f bin -I $(SRCDIR) -l $(LISTING) -o $@ $<
 
 .PHONY: run
 run: $(BIN)
 	qemu-system-i386 -drive file=$(BIN),format=raw,index=0,media=disk
+
+.PHONY: debug
+debug: $(BIN)
+	qemu-system-i386 -s -S -drive file=$(BIN),format=raw,index=0,media=disk
+
 
 # .PHONY: install
 # install: $(BIN)
